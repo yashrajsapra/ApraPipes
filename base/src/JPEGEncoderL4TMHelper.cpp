@@ -37,7 +37,7 @@ JPEGEncoderL4TMHelper::~JPEGEncoderL4TMHelper()
     jpeg_destroy_compress(&cinfo);
 }
 
-bool JPEGEncoderL4TMHelper::init(uint32_t width, uint32_t height, uint32_t _stride, J_COLOR_SPACE color_space, double scale)
+bool JPEGEncoderL4TMHelper::init(uint32_t width, uint32_t height, uint32_t _stride[3], J_COLOR_SPACE color_space, double scale)
 {
     if (color_space == JCS_RGB)
     {
@@ -48,15 +48,15 @@ bool JPEGEncoderL4TMHelper::init(uint32_t width, uint32_t height, uint32_t _stri
 
     comp_width[0] = width;
     comp_height[0] = height;
-    stride[0] = _stride;
+    stride[0] = _stride[0];
 
     comp_width[1] = width / 2;
     comp_height[1] = height / 2;
-    stride[1] = _stride / 2;
+    stride[1] = _stride[1];
 
     comp_width[2] = width / 2;
     comp_height[2] = height / 2;
-    stride[2] = _stride / 2;
+    stride[2] = _stride[2];
 
     h_max_samp = 0;
     v_max_samp = 0;
@@ -105,7 +105,7 @@ bool JPEGEncoderL4TMHelper::init(uint32_t width, uint32_t height, uint32_t _stri
     return true;
 }
 
-int JPEGEncoderL4TMHelper::encode(const unsigned char *in_buf, unsigned char **out_buf, unsigned long &out_buf_size)
+int JPEGEncoderL4TMHelper::encode(unsigned char *in_buf[3], unsigned char **out_buf, unsigned long &out_buf_size)
 {
     if(cinfo.in_color_space == JCS_RGB)
     {
@@ -136,10 +136,8 @@ int JPEGEncoderL4TMHelper::encode(const unsigned char *in_buf, unsigned char **o
 
     for (i = 0; i < planes; i++)
     {
-        base[i] = (unsigned char *)in_buf;
+        base[i] = (unsigned char *)in_buf[i];
         end[i] = base[i] + comp_height[i] * stride[i];
-
-        in_buf = end[i];
     }
 
     jpeg_start_compress(&cinfo, TRUE);
@@ -173,11 +171,10 @@ int JPEGEncoderL4TMHelper::encode(const unsigned char *in_buf, unsigned char **o
     {
         while (cinfo.next_scanline < cinfo.image_height)
         {
-            auto row = base[0] + (cinfo.next_scanline*stride[0]);
+            auto row = base[0] + (cinfo.next_scanline * stride[0]);
             jpeg_write_scanlines(&cinfo, &row, 1); 
         }
-    }
-            
+    }  
 
     jpeg_finish_compress(&cinfo);
 
