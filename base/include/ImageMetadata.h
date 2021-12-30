@@ -19,7 +19,8 @@ public:
         YUV444, // Planar
 		YUV420, // Planar
 		UYVY,	// Interleaved		
-		NV12
+		NV12,
+		YUYV
 	};
 
 	static size_t getElemSize(int depth)
