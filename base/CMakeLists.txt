@@ -183,6 +183,7 @@ SET(include/CORE_FILES_H
 	include/MetadataHints.h
 	include/FIndexStrategy.h
 	include/KeyboardListener.h
+	include/EncodedImageMetadata.h
 )
 
 IF(ENABLE_WINDOWS)

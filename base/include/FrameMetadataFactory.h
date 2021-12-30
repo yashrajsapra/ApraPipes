@@ -5,6 +5,7 @@
 #include "RawImageMetadata.h"
 #include "RawImagePlanarMetadata.h"
 #include "ArrayMetadata.h"
+#include "EncodedImageMetadata.h"
 
 class FrameMetadataFactory
 {
