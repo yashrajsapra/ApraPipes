@@ -15,6 +15,11 @@
 #include "PipeLine.h"
 #include "test_utils.h"
 #include <fstream>
+#include "NvArgusCamera.h"
+#include "NvTransform.h"
+#include "CudaMemCopy.h"
+#include "DMAFDToHostCopy.h"
+#include "FileWriterModule.h"
 
 BOOST_AUTO_TEST_SUITE(jpegencoderl4tm_tests)
 
@@ -476,4 +481,92 @@ BOOST_AUTO_TEST_CASE(jpegencoderl4tm_basic_width_channels, * boost::unit_test::d
 	}
 }
 
+BOOST_AUTO_TEST_CASE(jpegenbcoderyuvtestcase, *boost::unit_test::disabled())
+{
+
+	auto width = 640;
+	auto height = 360;
+
+	auto fileReader = boost::shared_ptr<FileReaderModule>(new FileReaderModule(FileReaderModuleProps("./data/yuv420_640x360.raw")));
+	auto metadata = framemetadata_sp(new RawImagePlanarMetadata(width, height, ImageMetadata::ImageType::YUV420, size_t(0), CV_8U));
+	fileReader->addOutputPin(metadata);
+
+	JPEGEncoderL4TMProps encoderProps;
+	auto m2 = boost::shared_ptr<Module>(new JPEGEncoderL4TM(encoderProps));
+	fileReader->setNext(m2);
+	auto encodedImageMetadata = framemetadata_sp(new FrameMetadata(FrameMetadata::ENCODED_IMAGE));
+	auto encodedImagePin = m2->addOutputPin(encodedImageMetadata);
+
+	StatSinkProps sinkProps;
+	sinkProps.logHealth = true;
+	sinkProps.logHealthFrequency = 100;
+	auto m3 = boost::shared_ptr<Module>(new FileWriterModule(FileWriterModuleProps("/home/developer/ApraPipes/data/testOutput/nvv4l2/x.jpeg")));
+	m2->setNext(m3);
+
+	PipeLine p("test");
+	p.appendModule(fileReader);
+	p.init();
+
+	p.run_all_threaded();
+	boost::this_thread::sleep_for(boost::chrono::seconds(5));
+	LOG_INFO << "profiling done - stopping the pipeline";
+	p.stop();
+	p.term();
+	p.wait_for_all();
+}
+
+BOOST_AUTO_TEST_CASE(cameratest, *boost::unit_test::disabled())
+{
+
+	int width = 1280;
+	int height = 720;
+
+	auto stream = cudastream_sp(new ApraCudaStream);
+
+	boost::shared_ptr<Module> source;
+	boost::shared_ptr<Module> cuctx;
+	NvArgusCameraProps sourceProps(width, height);
+	sourceProps.maxConcurrentFrames = 10;
+	sourceProps.fps = 60;
+	sourceProps.quePushStrategyType = QuePushStrategy::NON_BLOCKING_ANY;
+
+	source = boost::shared_ptr<Module>(new NvArgusCamera(sourceProps));
+
+	NvTransformProps nvtransformprops(ImageMetadata::YUV420, 1280, 720);
+	nvtransformprops.qlen = 1;
+	nvtransformprops.fps = 60;
+	nvtransformprops.quePushStrategyType = QuePushStrategy::NON_BLOCKING_ANY;
+	nvtransformprops.logHealth = true;
+	nvtransformprops.logHealthFrequency = 100;
+
+	auto nv_transform = boost::shared_ptr<Module>(new NvTransform(nvtransformprops));
+	source->setNext(nv_transform);
+
+	auto copy = boost::shared_ptr<Module>(new DMAFDToHostCopy);
+	nv_transform->setNext(copy);
+
+	auto filew_raw = boost::shared_ptr<Module>(new FileWriterModule(FileWriterModuleProps("/home/developer/ApraPipes/data/testOutput/nvv4l2/Frame_????.raw")));
+	copy->setNext(filew_raw);
+
+	auto encoder = boost::shared_ptr<JPEGEncoderL4TM>(new JPEGEncoderL4TM());
+	nv_transform->setNext(encoder);
+	auto encodedImageMetadata = framemetadata_sp(new FrameMetadata(FrameMetadata::ENCODED_IMAGE, FrameMetadata::MemType::HOST));
+	auto encodedImagePin = encoder->addOutputPin(encodedImageMetadata);
+
+	auto filew = boost::shared_ptr<Module>(new FileWriterModule(FileWriterModuleProps("/home/developer/ApraPipes/data/testOutput/nvv4l2/Frame_????.jpg")));
+	encoder->setNext(filew);
+
+	PipeLine p("test");
+	p.appendModule(source);
+
+	p.init();
+	Logger::setLogLevel(boost::log::trivial::severity_level::info);
+	p.run_all_threaded();
+
+	boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
+
+	p.stop();
+	p.term();
+	p.wait_for_all();
+}
 BOOST_AUTO_TEST_SUITE_END()
