@@ -522,6 +522,11 @@ bool Module::validateInputPins()
   {
     throw AIPException(CTRL_MODULE_INVALID_STATE, "Illegal: Control module does not take any input pins.");
   }
+  else if (myNature == CONTROL && getNumberOfInputPins() == 0)
+  {
+    // FIX: Control modules should have 0 input pins - this is valid
+    return true;
+  }
   return false;
 }
 
@@ -533,7 +538,12 @@ bool Module::validateOutputPins()
   }
   else if (myNature == CONTROL && getNumberOfOutputPins() > 0)
   {
-    throw AIPException(CTRL_MODULE_INVALID_STATE, "Illegal: Control module does not take any input pins.");
+    throw AIPException(CTRL_MODULE_INVALID_STATE, "Illegal: Control module does not take any output pins.");
+  }
+  else if (myNature == CONTROL && getNumberOfOutputPins() == 0)
+  {
+    // FIX: Control modules should have 0 output pins - this is valid
+    return true;
   }
   return false;
 }
@@ -1567,6 +1577,16 @@ bool Module::stepNonSource(frame_container &frames)
 
 bool Module::addEoPFrame(frame_container &frames)
 {
+  // FIX: CONTROL modules have no output pins, so add EoP frame with dummy pinId
+  if (myNature == CONTROL && mOutputPinIdFrameFactoryMap.empty())
+  {
+    auto frame = frame_sp(new EoPFrame());
+    auto metadata = framemetadata_sp(new FrameMetadata(FrameMetadata::FrameType::GENERAL));
+    frame->setMetadata(metadata);
+    frames.insert(make_pair("control_eop", frame));
+    return true;
+  }
+
   pair<string, framefactory_sp> me; // map element
   BOOST_FOREACH (me, mOutputPinIdFrameFactoryMap)
   {
@@ -1600,11 +1620,14 @@ bool Module::handleStop()
     return true;
   }
   mStopCount++;
-  if (myNature != SOURCE && mStopCount != mForwardPins)
+  // FIX: CONTROL modules have 0 forward pins, so treat them like SOURCE modules
+  // They should stop immediately without waiting for mStopCount == mForwardPins
+  if (myNature != SOURCE && myNature != CONTROL && mStopCount != mForwardPins)
   {
     return true;
   }
-  if (myNature != SINK)
+  // FIX: CONTROL modules can't send frames downstream (they have no outputs)
+  if (myNature != SINK && myNature != CONTROL)
   {
     sendEoPFrame();
   }

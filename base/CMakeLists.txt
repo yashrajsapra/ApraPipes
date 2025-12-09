@@ -612,11 +612,12 @@ SET(UT_FILES
 	test/mp4writersink_tests.cpp
 	test/pipeline_tests.cpp
 #	test/multiple_pipeline_tests.cpp #todo this test needs to be improved and added
+	test/control_module_memory_leak_tests.cpp
 	test/valveModule_tests.cpp
 	test/color_conversion_tests.cpp
 	test/archivespacemanager_tests.cpp
 	test/multimediaqueuexform_tests.cpp
-  test/mp4readersource_tests.cpp
+    test/mp4readersource_tests.cpp
 	test/rtsp_client_tests.cpp
 	test/motionvector_extractor_and_overlay_tests.cpp
 	test/mp4_reverse_play_tests.cpp
