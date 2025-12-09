@@ -17,6 +17,7 @@ public:
     HostAllocator() : buff_allocator(1024) {};
     virtual ~HostAllocator()
     {
+        LOG_INFO << "HostAllocator destructor - releasing " << buff_allocator.get_requested_size() << " bytes from pool";
         buff_allocator.release_memory();
     }
     virtual void *allocateChunks(size_t n)

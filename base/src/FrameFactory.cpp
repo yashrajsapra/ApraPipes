@@ -43,6 +43,7 @@ FrameFactory::FrameFactory(framemetadata_sp metadata, size_t _maxConcurrentFrame
 }
 FrameFactory::~FrameFactory()
 {
+	LOG_INFO << "FrameFactory destructor called - releasing memory allocator";
 }
 
 size_t FrameFactory::getNumberOfChunks(size_t size)

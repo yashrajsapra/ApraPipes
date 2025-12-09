@@ -11,8 +11,10 @@ Frame::Frame():mutable_buffer(0, 0),myOrig(0)
 Frame::Frame(void *buff, size_t size, boost::shared_ptr<FrameFactory> mother):mutable_buffer(buff,size), myOrig(buff), myMother(mother)
 {
 	setDefaultValues();
+	LOG_INFO << "Frame created, FrameFactory use_count: " << (myMother ? myMother.use_count() : 0);
 }
 Frame::~Frame() {
+	LOG_INFO << "Frame destructor, releasing FrameFactory ref (use_count before: " << (myMother ? myMother.use_count() : 0) << ")";
 	myMother.reset();
 }
 
