@@ -72,6 +72,11 @@ jobs:
       - name: Register CI member
         run: apra-fleet register-member --name ci-scanner --path ${{ github.workspace }} --type local
 
+      - name: Provision LLM auth for CI member
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_SETUP_TOKEN }}
+        run: apra-fleet auth --oauth --member ci-scanner "$CLAUDE_CODE_OAUTH_TOKEN"
+
       - name: Run kb-gen workflow
         run: |
           PROMOTE_FLAG=""
