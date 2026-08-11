@@ -29,6 +29,8 @@ jobs:
   kb-gen:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    env:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_SETUP_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -61,27 +63,9 @@ jobs:
           curl -sf http://localhost:7523/health || (echo "Fleet server failed to start" && exit 1)
 
       - name: Register CI member
-        env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_SETUP_TOKEN }}
-        run: |
-          # Register a local member pointing to the checkout
-          node -e "
-            const { connectFleet } = require('@apralabs/apra-fleet-client/server-resolution');
-            (async () => {
-              const { mcpClient } = await connectFleet({ env: process.env });
-              const result = await mcpClient.callTool('register_member', {
-                name: 'ci-scanner',
-                work_folder: '${{ github.workspace }}',
-                type: 'local'
-              });
-              console.log('Registered:', JSON.stringify(result));
-              process.exit(0);
-            })().catch(e => { console.error(e); process.exit(1); });
-          "
+        run: apra-fleet register-member --name ci-scanner --path ${{ github.workspace }}
 
       - name: Run kb-gen workflow
-        env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_SETUP_TOKEN }}
         run: |
           PROMOTE_FLAG=""
           if [ "${{ inputs.promote }}" = "false" ]; then
@@ -94,26 +78,11 @@ jobs:
             --budget ${{ inputs.budget }} \
             $PROMOTE_FLAG
 
-      - name: Show KB stats
-        run: |
-          node -e "
-            const { connectFleet } = require('@apralabs/apra-fleet-client/server-resolution');
-            (async () => {
-              const { mcpClient } = await connectFleet({ env: process.env });
-              const result = await mcpClient.callTool('kb_stats', {
-                repo: '${{ github.workspace }}'
-              });
-              console.log(JSON.stringify(JSON.parse(result.content[0].text), null, 2));
-              process.exit(0);
-            })().catch(e => { console.error(e); process.exit(1); });
-          "
-
       - name: Commit and push KB bible
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Add the bible if it was generated
           if [ -f ".fleet/kb-canonical.json" ]; then
             git add .fleet/kb-canonical.json
             git diff --cached --quiet || git commit -m "chore(kb): update canonical bible [skip ci]"
