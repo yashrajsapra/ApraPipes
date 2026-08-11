@@ -1,0 +1,223 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-08-11T22:37:00Z",
+  "repository": "ApraPipes/ApraPipes",
+  "branch": "feat/sdk-packaging",
+  "total_entries": 9,
+  "confidence_distribution": {
+    "CONFIRMED": 0,
+    "INFERRED": 9,
+    "UNVERIFIED": 0
+  },
+  "entry_type_distribution": {
+    "context-cache": 6,
+    "knowledge": 2,
+    "runbook": 1
+  },
+  "entries": [
+    {
+      "id": "kb-ctx-mp4reader-001",
+      "type": "context-cache",
+      "confidence": "INFERRED",
+      "title": "Mp4ReaderSource Module",
+      "summary": "Comprehensive documentation of the MP4 file reading module for extracting video frames and metadata from MP4 files",
+      "source_files": ["knowledge_docs/Mp4ReaderSource_module.md"],
+      "symbols": ["Mp4ReaderSource", "frame_reading", "seek", "metadata_extraction", "stream_properties"],
+      "related_modules": ["H264Decoder", "ColorConversionXForm"],
+      "size_bytes": 16384
+    },
+    {
+      "id": "kb-ctx-cuda-codec-001",
+      "type": "context-cache",
+      "confidence": "INFERRED",
+      "title": "NVIDIA CUDA Video Codec SDK Compatibility",
+      "summary": "Documentation of NVIDIA NVCodec integration, CUDA codec API details, driver compatibility, and version requirements",
+      "source_files": ["knowledge_docs/NVIDIA_CUDA_Video_Codec_SDK_Compatibility.md"],
+      "symbols": ["CUDA_codec", "NVIDIA_NVCodec", "NVDEC", "driver_compatibility", "CUDA_SDK_version"],
+      "related_modules": ["H264Decoder", "ColorConversionXForm"],
+      "size_bytes": 17408
+    },
+    {
+      "id": "kb-ctx-mp4writer-001",
+      "type": "context-cache",
+      "confidence": "INFERRED",
+      "title": "Mp4Writer Module",
+      "summary": "Documentation of MP4 file writing module including encoding parameters, H.264 configuration, and frame buffering",
+      "source_files": ["knowledge_docs/Mp4Writer_module.md"],
+      "symbols": ["Mp4WriterSink", "H264_encoding", "bitrate_control", "codec_settings", "frame_buffering"],
+      "related_modules": ["H264Decoder", "ColorConversionXForm"],
+      "size_bytes": 5888
+    },
+    {
+      "id": "kb-ctx-colorconv-001",
+      "type": "context-cache",
+      "confidence": "INFERRED",
+      "title": "Color Conversion Module",
+      "summary": "Documentation of color space transformation module supporting YUV/RGB conversions with CUDA acceleration via NV NPP",
+      "source_files": ["knowledge_docs/Color_conversion_module.md"],
+      "symbols": ["ColorConversionXForm", "YUV_conversion", "RGB_conversion", "color_space", "CUDA_acceleration", "NPP"],
+      "related_modules": ["Mp4ReaderSource", "Mp4WriterSink"],
+      "size_bytes": 4710
+    },
+    {
+      "id": "kb-ctx-h264dec-001",
+      "type": "context-cache",
+      "confidence": "INFERRED",
+      "title": "H.264 Decoder Module",
+      "summary": "Documentation of hardware-accelerated H.264 decoding using NVIDIA NVDEC with bitstream handling",
+      "source_files": ["knowledge_docs/H.264_decoder_module.md"],
+      "symbols": ["H264Decoder", "hardware_decoding", "NVDEC", "bitstream_parsing"],
+      "related_modules": ["Mp4ReaderSource", "H264FrameDemuxer"],
+      "size_bytes": 2496
+    },
+    {
+      "id": "kb-ctx-overlay-001",
+      "type": "context-cache",
+      "confidence": "INFERRED",
+      "title": "Overlay Module",
+      "summary": "Documentation of image and text overlay rendering module with OpenGL-based composition",
+      "source_files": ["knowledge_docs/Overlay_module.md"],
+      "symbols": ["OverlayModule", "text_rendering", "image_overlay", "graphics_composition", "OpenGL"],
+      "related_modules": ["ColorConversionXForm", "VirtualCameraSink"],
+      "size_bytes": 3481
+    },
+    {
+      "id": "kb-know-jetson-001",
+      "type": "knowledge",
+      "confidence": "INFERRED",
+      "title": "Jetson/JetPack 5.x Platform Support",
+      "summary": "Architecture and platform-specific considerations for deploying ApraPipes on NVIDIA Jetson devices with JetPack 5.x",
+      "source_files": ["knowledge_docs/jetson-jp5.md"],
+      "symbols": ["Jetson", "JetPack_5", "ARM64", "L4T", "L4TMultimedia", "dlopen_wrapper"],
+      "patterns": ["cross_platform_support", "platform_specific_libraries", "device_abstraction"],
+      "key_insights": "Jetson devices require JetPack 5.x with specific L4T multimedia versions; dlopen wrappers handle dynamic library loading for optional CUDA features",
+      "size_bytes": 2990
+    },
+    {
+      "id": "kb-know-motionvec-001",
+      "type": "knowledge",
+      "confidence": "INFERRED",
+      "title": "Motion Vector Calculation and Extraction",
+      "summary": "Architectural pattern for motion estimation, vector calculation, and frame difference analysis used in video analytics",
+      "source_files": ["knowledge_docs/Motion_vector_calculation.md"],
+      "symbols": ["motion_estimation", "motion_vectors", "optical_flow", "frame_difference", "block_matching"],
+      "patterns": ["video_analysis", "performance_optimization", "frame_metadata"],
+      "key_insights": "Motion vectors are extracted from video frames to enable analytics, optimization, and reverse-playback functionality",
+      "size_bytes": 5734
+    },
+    {
+      "id": "kb-runbook-h264rev-001",
+      "type": "runbook",
+      "confidence": "INFERRED",
+      "title": "H.264 Reverse Playback Implementation",
+      "summary": "Step-by-step procedure for implementing reverse playback of H.264-encoded video streams",
+      "source_files": ["knowledge_docs/H.264_reverse_play.md"],
+      "symbols": ["reverse_playback", "keyframe_detection", "frame_buffering", "backward_iteration"],
+      "procedures": [
+        "Keyframe detection and identification",
+        "Frame buffering strategy",
+        "Backward iteration through frame sequence",
+        "Temporal ordering reconstruction"
+      ],
+      "prerequisites": ["H264Decoder", "frame_metadata", "buffer_management"],
+      "complexity": "high",
+      "key_insights": "Reverse playback is complex due to keyframe dependencies; requires buffering and special handling of frame references",
+      "size_bytes": 3787
+    }
+  ],
+  "codebase_stats": {
+    "total_source_files": 416,
+    "source_languages": ["C++", "C", "CMake"],
+    "total_modules": 52,
+    "documented_modules": 6,
+    "coverage_percentage": 11.5,
+    "build_platforms": ["Windows", "Linux", "macOS", "Jetson/ARM64"],
+    "specialized_features": ["CUDA", "NPP", "NVCodec", "OpenGL", "V4L2", "FFmpeg"]
+  },
+  "gaps": {
+    "critical": [
+      {
+        "component": "ModuleRegistry & Factory",
+        "file_size_kb": 63,
+        "reason": "Core infrastructure for module loading and instantiation",
+        "priority": "HIGH"
+      },
+      {
+        "component": "PipelineValidator & Analyzer",
+        "file_size_kb": 57,
+        "reason": "Validation framework including path checking and auto-bridging",
+        "priority": "HIGH"
+      },
+      {
+        "component": "Frame Type System",
+        "file_size_kb": 14,
+        "reason": "Type system for frame metadata and conversions",
+        "priority": "HIGH"
+      }
+    ],
+    "high": [
+      {
+        "component": "JsonParser & PipelineDescription",
+        "file_size_kb": 17,
+        "reason": "JSON schema and configuration model documentation",
+        "priority": "HIGH"
+      },
+      {
+        "component": "PathUtils & Path Types",
+        "file_size_kb": 12,
+        "reason": "Path validation and requirements system (new feature)",
+        "priority": "MEDIUM"
+      }
+    ],
+    "medium": [
+      {
+        "component": "Input/Output Modules",
+        "count": 6,
+        "examples": ["FileReader", "FileWriter", "RTSPClient", "AudioToText", "ArchiveSpaceManager"],
+        "priority": "MEDIUM"
+      },
+      {
+        "component": "CUDA & NPP Modules",
+        "count": 15,
+        "examples": ["NppFilter", "CudaMemCopy", "NppCudaConverter"],
+        "priority": "MEDIUM"
+      },
+      {
+        "component": "Jetson-Specific Modules",
+        "count": 8,
+        "examples": ["V4L2 integration", "L4T multimedia wrappers"],
+        "priority": "MEDIUM"
+      }
+    ]
+  },
+  "phase_plan": {
+    "phase_1": {
+      "title": "Critical Infrastructure",
+      "estimated_effort": "2-3 KB documentation",
+      "components": ["ModuleRegistry", "PipelineValidator", "FrameTypeRegistry"],
+      "target_coverage": "30%"
+    },
+    "phase_2": {
+      "title": "Core Data Structures",
+      "estimated_effort": "2-3 KB documentation",
+      "components": ["JsonParser", "PathUtils", "PipelineDescription"],
+      "target_coverage": "45%"
+    },
+    "phase_3": {
+      "title": "Module Ecosystem",
+      "estimated_effort": "10-12 KB documentation",
+      "components": ["I/O modules", "CUDA modules", "Analytics modules"],
+      "target_coverage": "75%"
+    }
+  },
+  "metadata": {
+    "author": "kb-gen workflow (Phase 5 - Export)",
+    "status": "INFERRED (ready for CONFIRMED promotion after review)",
+    "next_steps": [
+      "Review all 9 INFERRED entries for technical accuracy",
+      "Promote verified entries to CONFIRMED status",
+      "Execute Phase 1 gap-filling for critical infrastructure",
+      "Establish ongoing KB maintenance schedule"
+    ]
+  }
+}
