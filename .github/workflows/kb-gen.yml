@@ -63,7 +63,7 @@ jobs:
           curl -sf http://localhost:7523/health || (echo "Fleet server failed to start" && exit 1)
 
       - name: Register CI member
-        run: apra-fleet register-member --name ci-scanner --path ${{ github.workspace }}
+        run: apra-fleet register-member --name ci-scanner --path ${{ github.workspace }} --type local
 
       - name: Run kb-gen workflow
         run: |
