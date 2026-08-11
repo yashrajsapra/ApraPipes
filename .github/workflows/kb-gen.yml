@@ -62,7 +62,7 @@ jobs:
 
       - name: Register CI member
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_SETUP_TOKEN }}
         run: |
           # Register a local member pointing to the checkout
           node -e "
@@ -81,7 +81,7 @@ jobs:
 
       - name: Run kb-gen workflow
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_SETUP_TOKEN }}
         run: |
           PROMOTE_FLAG=""
           if [ "${{ inputs.promote }}" = "false" ]; then
