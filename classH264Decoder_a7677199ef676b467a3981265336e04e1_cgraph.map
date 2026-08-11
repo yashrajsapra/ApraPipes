@@ -1,0 +1,10 @@
+<map id="H264Decoder::processSOS" name="H264Decoder::processSOS">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,78,186,104"/>
+<area shape="rect" id="Node000002" href="$classH264Decoder.html#ace7a9ddbe0e9f85ee4725298adfe5f15" title=" " alt="" coords="234,5,423,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,75,238,48,239,53,145,80"/>
+<area shape="rect" id="Node000003" href="$classFrameMetadataFactory.html#acb4e82000d0154fd9f3260ce870d3437" title=" " alt="" coords="251,71,406,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,88,235,88,235,94,186,94"/>
+<area shape="rect" id="Node000004" href="$classModule.html#a264d18f5907844d6d413c5d529804c4d" title=" " alt="" coords="259,160,398,185"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="136,102,276,151,274,156,134,107"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="290,161,282,151,287,141,302,135,328,133,357,136,371,142,369,147,355,141,328,138,304,140,290,145,287,150,294,157"/>
+</map>

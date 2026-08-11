@@ -1,0 +1,12 @@
+<map id="h264DecoderV4L2Helper" name="h264DecoderV4L2Helper">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,1137,200,1529"/>
+<area shape="rect" id="Node000002" href="$structh264DecoderV4L2Helper_1_1context__t.html" title=" " alt="" coords="25,789,181,1074"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,1073,106,1120,100,1120,100,1073"/>
+<area shape="rect" id="Node000003" href="$structBuffer_1_1BufferPlaneFormat.html" title=" " alt="" coords="24,5,182,153"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="104,153,102,388,103,772,98,772,97,388,99,152"/>
+<area shape="rect" id="Node000005" href="$structBuffer_1_1BufferPlane.html" title=" " alt="" coords="131,216,248,364"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="135,152,155,199,150,201,130,154"/>
+<area shape="rect" id="Node000004" href="$classBuffer.html" title="Class representing a buffer." alt="" coords="119,442,284,711"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="167,712,149,774,144,773,162,710"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="195,363,198,425,192,425,190,364"/>
+</map>

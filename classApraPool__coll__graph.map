@@ -1,0 +1,11 @@
+<map id="ApraPool&lt; UserAllocator &gt;" name="ApraPool&lt; UserAllocator &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="92,584,256,894"/>
+<area shape="rect" id="Node000002" href="$classApraSegregatedStorage.html" title=" " alt="" coords="5,231,182,521"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,535,142,584,137,585,126,536"/>
+<area shape="rect" id="Node000003" href="$classApraChunk.html" title=" " alt="" coords="46,5,142,153"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="96,153,96,214,91,214,91,153"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="142,56,160,62,166,69,168,79,166,90,160,97,156,93,161,87,163,79,162,72,157,66,141,61"/>
+<area shape="rect" id="Node000004" href="$classApraNode.html" title=" " alt="" coords="207,231,304,521"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="225,521,215,568,210,567,220,520"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="304,341,314,344,323,351,328,362,330,376,328,392,321,403,317,400,323,390,325,376,323,363,319,354,312,348,303,346"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="CompositeOverlayBuilder" name="CompositeOverlayBuilder">
+<area shape="rect" id="Node000001" title=" " alt="" coords="19,535,197,622"/>
+<area shape="rect" id="Node000002" href="$classDrawingOverlayBuilder.html" title=" " alt="" coords="5,314,168,401"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,415,107,535,101,535,90,415"/>
+<area shape="rect" id="Node000003" href="$classCompositeOverlay.html" title=" " alt="" coords="192,243,330,472"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,458,149,523,145,520,191,455"/>
+<area shape="rect" id="Node000004" href="$classOverlayInfo.html" title=" " alt="" coords="200,5,324,194"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="264,209,264,243,259,243,259,209"/>
+</map>
