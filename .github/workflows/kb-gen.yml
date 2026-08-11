@@ -61,8 +61,11 @@ jobs:
           cp .fleet/workflows/kb-gen/* ~/.apra-fleet/workflows/kb-gen/
 
       - name: Start fleet server
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_SETUP_TOKEN }}
         run: |
-          apra-fleet run &
+          # Fleet server must inherit the OAuth token so dispatched claude sessions are authenticated
+          CLAUDE_CODE_OAUTH_TOKEN=$CLAUDE_CODE_OAUTH_TOKEN apra-fleet run &
           sleep 5
           curl -sf http://localhost:7523/health || (echo "Fleet server failed to start" && exit 1)
 
