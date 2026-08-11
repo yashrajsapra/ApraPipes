@@ -44,7 +44,11 @@ jobs:
           node-version: '22'
 
       - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          # Ensure claude is findable by the fleet server's shell
+          which claude
+          ln -sf $(which claude) /usr/local/bin/claude 2>/dev/null || true
 
       - name: Install apra-fleet
         run: |
