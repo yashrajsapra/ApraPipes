@@ -42,9 +42,7 @@ jobs:
           node-version: '22'
 
       - name: Install Claude Code CLI
-        run: |
-          npm install -g @anthropic-ai/claude-code
-          claude setup-token ${{ secrets.CLAUDE_SETUP_TOKEN }}
+        run: npm install -g @anthropic-ai/claude-code
 
       - name: Install apra-fleet
         run: |
@@ -64,7 +62,7 @@ jobs:
 
       - name: Register CI member
         env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_SETUP_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           # Register a local member pointing to the checkout
           node -e "
@@ -83,7 +81,7 @@ jobs:
 
       - name: Run kb-gen workflow
         env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_SETUP_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           PROMOTE_FLAG=""
           if [ "${{ inputs.promote }}" = "false" ]; then
