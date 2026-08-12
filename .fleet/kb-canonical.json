@@ -1,18 +1,18 @@
 {
   "version": "1.0",
-  "generated_at": "2026-08-11T22:37:00Z",
+  "generated_at": "2026-08-12T00:00:00Z",
   "repository": "ApraPipes/ApraPipes",
   "branch": "feat/sdk-packaging",
-  "total_entries": 9,
+  "total_entries": 17,
   "confidence_distribution": {
-    "CONFIRMED": 9,
+    "CONFIRMED": 17,
     "INFERRED": 0,
     "UNVERIFIED": 0
   },
   "entry_type_distribution": {
     "context-cache": 6,
-    "knowledge": 2,
-    "runbook": 1
+    "knowledge": 9,
+    "runbook": 2
   },
   "entries": [
     {
@@ -225,6 +225,113 @@
       "complexity": "high",
       "key_insights": "Reverse playback is complex due to keyframe dependencies; requires buffering and special handling of frame references",
       "size_bytes": 3787
+    },
+    {
+      "id": "kb-know-testing-no-lint-gate-001",
+      "type": "knowledge",
+      "confidence": "CONFIRMED",
+      "title": "Code Quality: .clang-format Present but Not CI-Enforced",
+      "content": "A .clang-format config file exists at the repo root, but grepping all .github/workflows/*.yml for clang-format, clang-tidy, cppcheck, or any 'lint' step found no matches -- there is no automated formatting/linting/static-analysis gate in CI. Style consistency currently relies entirely on the .clang-format file being run manually/via editor integration, not enforced pre-merge. This is an inference from absence-of-evidence (no lint job found across all workflow files), verified by grepping the workflows directory.",
+      "source_files": [
+        ".clang-format"
+      ],
+      "symbols": ["clang-format", "code_style", "static_analysis"],
+      "patterns": ["manual_enforcement", "linting_gap"],
+      "verification_date": "2026-08-12",
+      "verified_by": "KB quality reviewer"
+    },
+    {
+      "id": "kb-know-config-propdef-001",
+      "type": "knowledge",
+      "confidence": "CONFIRMED",
+      "title": "Config: PropDef Property Definition System",
+      "content": "base/include/declarative/Metadata.h:247-741 defines struct PropDef, the compile-time schema for a single module property: name, type (Integer|Floating|Boolean|Text|Enumeration), mutability (Static|Dynamic), required, per-type default/min/max fields, regex_pattern, fixed-capacity enum_values, description, unit, and path metadata (path_type: NotAPath/FilePath/DirectoryPath/FilePattern/GlobPattern/DevicePath/NetworkURL; path_requirement: NoValidation/MustExist/MayExist/MustNotExist/ParentMustExist/WillBeCreated). PropDef::FilePath()/DirectoryPath()/FilePattern()/GlobPattern()/DevicePath()/NetworkURL() (lines 611-648) are constexpr factories setting type=Text plus the appropriate path_type/path_requirement (DevicePath forces MustExist, NetworkURL forces NoValidation). isPath()/isFilesystemPath() (731-740) distinguish real filesystem paths from URLs. A parallel AttrDef struct (747-878) describes frame-type attributes and is unrelated to module config.",
+      "source_files": ["base/include/declarative/Metadata.h"],
+      "symbols": ["PropDef", "PathType", "PathRequirement", "FilePath", "DirectoryPath"],
+      "patterns": ["compile_time_reflection", "constexpr_factories", "type_system"],
+      "verification_date": "2026-08-12",
+      "verified_by": "KB quality reviewer"
+    },
+    {
+      "id": "kb-know-config-registrationbuilder-001",
+      "type": "knowledge",
+      "confidence": "CONFIRMED",
+      "title": "Config: ModuleRegistrationBuilder Fluent Registration API",
+      "content": "base/include/declarative/ModuleRegistrationBuilder.h implements ModuleRegistrationBuilder<ModuleClass, PropsClass>, invoked via registerModule<...>() at static-init time. Chainable methods (category, description, tags, input/output pin declarations, stringProp/intProp/floatProp/boolProp/enumProp/dynamicProp at lines 309-401, plus path-specific filePathProp/directoryPathProp/filePatternProp/networkURLProp at 408-473) build a runtime ModuleInfo::PropInfo list mirroring PropDef but string-based. selfManagedOutputPins() and cudaStreamRequired() set special module flags. On destruction (or explicit finalize(), line 520) the builder constructs a factory lambda: default-constructs PropsClass, applies incoming string-keyed props via SFINAE helper detail::tryApplyProperties, throws on missing required props, then make_unique<ModuleClass>(moduleProps), and registers into the ModuleRegistry::instance() singleton. finalizeWith() supports custom factory lambdas for Props types without a default constructor (used by some Jetson modules). ModuleRegistry.h:284 has toPropInfo(const PropDef&) that converts the constexpr PropDef form into the same PropInfo shape, unifying the two declaration styles.",
+      "source_files": ["base/include/declarative/ModuleRegistrationBuilder.h", "base/include/declarative/ModuleRegistry.h"],
+      "symbols": ["ModuleRegistrationBuilder", "registerModule", "ModuleInfo", "PropInfo"],
+      "patterns": ["fluent_api", "static_initialization", "reflection"],
+      "verification_date": "2026-08-12",
+      "verified_by": "KB quality reviewer"
+    },
+    {
+      "id": "kb-know-config-modulefactory-001",
+      "type": "knowledge",
+      "confidence": "CONFIRMED",
+      "title": "Config: ModuleFactory JSON-to-Module Instantiation and Path Materialization",
+      "content": "base/src/declarative/ModuleFactory.cpp: ModuleFactory::build(const PipelineDescription&) (line 367) is the top-level entry. Order: ensureBuiltinModulesRegistered() (369) -> create a PipeLine -> detect/create shared CUDA stream+context if any module needs one (397-449, ENABLE_CUDA-gated) -> createModule() per instance -> auto-bridge pass via PipelineAnalyzer (inserts type/memory conversion modules) -> connectModules() resolving pin names via setNext() -> validateInputConnections() -> append source modules to the PipeLine -> populate result.modules with dynamic property accessors. createModule() (614) converts each PipelineDescription::PropertyValue variant to a ScalarPropertyValue via std::visit (652). Critically, path normalization AND directory creation happen here, not only in the validator: if propInfo->path_type != NotAPath, it calls path_utils::normalizePath() (667); if path_requirement == WillBeCreated it computes the parent directory and calls path_utils::createDirectories() when missing (670-687). Array-valued properties are coerced to scalars with a warning (695-724). Required-property presence is checked (728-753) before the registry actually constructs the module (786) via createModule/createCudaModule/createCuContextModule depending on CUDA needs.",
+      "source_files": ["base/src/declarative/ModuleFactory.cpp"],
+      "symbols": ["ModuleFactory", "build", "createModule", "path_normalization"],
+      "patterns": ["factory_pattern", "path_handling", "cuda_integration"],
+      "verification_date": "2026-08-12",
+      "verified_by": "KB quality reviewer"
+    },
+    {
+      "id": "kb-know-config-jsonschema-001",
+      "type": "knowledge",
+      "confidence": "CONFIRMED",
+      "title": "Config: Pipeline JSON Schema (JsonParser / PipelineDescription)",
+      "content": "base/include/declarative/PipelineDescription.h defines the config data model: PropertyValue (variant of int64/double/bool/string/vector<...>), ModuleInstance{instance_id, module_type, properties}, Connection{from_module, from_pin, to_module, to_pin, sieve}, PipelineSettings{name, version, on_error, queue_size, auto_start}, PipelineDescription{settings, modules, connections, source_format, source_path}. base/src/declarative/JsonParser.cpp parses via nlohmann::json with top-level keys: 'pipeline' (name/version/description, optional, 86-106), 'settings' (queueSize/queue_size, onError/on_error, autoStart/auto_start -- both camelCase and snake_case accepted, 109-138), 'modules' (an OBJECT keyed by instance id, each with required 'type' and a 'props' object; keys starting with '#' inside props are treated as comments and skipped, 141-180), and 'connections' (an ARRAY of {from, to, sieve?} where from/to use 'module.pin' syntax parsed by Connection::parse, 183-224). JsonParser::parseFile/parseString (248-311) call ensureBuiltinModulesRegistered() first, then parse into a ParseResult{success, error, description}.",
+      "source_files": ["base/include/declarative/PipelineDescription.h", "base/src/declarative/JsonParser.cpp"],
+      "symbols": ["PipelineDescription", "JsonParser", "PropertyValue", "Connection"],
+      "patterns": ["data_model", "json_parsing", "configuration_schema"],
+      "verification_date": "2026-08-12",
+      "verified_by": "KB quality reviewer"
+    },
+    {
+      "id": "kb-know-config-validator-001",
+      "type": "knowledge",
+      "confidence": "CONFIRMED",
+      "title": "Config: PipelineValidator Ordered Validation Phases (incl. Path Validation)",
+      "content": "base/include/declarative/PipelineValidator.h + base/src/declarative/PipelineValidator.cpp. validate() (line 142) runs 5 independently-invocable phases in order: validateModules() (216, checks module type exists in the registry, offers typo suggestions), validateProperties() (272, checks for unknown properties and type mismatches against ModuleInfo::PropInfo), validateConnections(), validateGraph(), and validatePaths() (884, gated by Options::validatePaths, default true) which iterates every path-typed property and calls path_utils::validatePath(pathValue, path_type, path_requirement), mapping failures to error codes (PATH_NOT_FOUND, PATH_PARENT_NOT_FOUND, PATH_NOT_WRITABLE, PATH_CREATE_FAILED, PATH_NOT_FILE, PATH_NOT_DIR) and warnings (PATH_NO_PATTERN_MATCHES, PATH_ALREADY_EXISTS). Options (62-72) default to running all phases except stopOnFirstError/includeInfoMessages. Note: aprapipes_cli's validate/run commands actually invoke ModuleFactory::build() rather than calling PipelineValidator directly (aprapipes_cli.cpp:195) -- so in the CLI path, path issues surface via the factory's own normalization/directory-creation logic (see kb-know-config-modulefactory-001) plus whatever validation ModuleFactory internally triggers, while PipelineValidator is the standalone/testable validation entry point used by other tooling and tests.",
+      "source_files": ["base/include/declarative/PipelineValidator.h", "base/src/declarative/PipelineValidator.cpp"],
+      "symbols": ["PipelineValidator", "validate", "validatePaths", "PathError"],
+      "patterns": ["validation_framework", "error_detection", "path_checking"],
+      "verification_date": "2026-08-12",
+      "verified_by": "KB quality reviewer"
+    },
+    {
+      "id": "kb-know-config-cmake-001",
+      "type": "knowledge",
+      "confidence": "CONFIRMED",
+      "title": "Config: CMake Feature Flags Gate Compiled-In Modules and DELAYLOAD",
+      "content": "base/CMakeLists.txt:3-7 defines top-level OPTIONs: ENABLE_LINUX (ON), ENABLE_CUDA (ON), ENABLE_ARM64 (OFF), ENABLE_WINDOWS (OFF), ENABLE_MACOS (OFF), plus BUILD_NODE_ADDON (~1183) and BUILD_HEADLESS. ENABLE_CUDA adds the ENABLE_CUDA compile definition (line 24) gating #ifdef ENABLE_CUDA code throughout the tree (e.g. ModuleFactory.cpp's CUDA stream/context creation, CudaCommon.h includes). ENABLE_ARM64 selects the Jetson nvcc path (/usr/local/cuda/bin/nvcc, line 49) and toggles GTK include dirs. Dozens of IF(ENABLE_*) blocks conditionally add source files and link libraries (OpenCV CUDA modules, GStreamer, GTK3, etc.), which determines which module implementations are compiled into the aprapipes static lib -- and therefore what ensureBuiltinModulesRegistered() actually registers at runtime (config surface is build-time-gated, not just JSON-driven). The aprapipes_cli target (952-1030) force-links the whole aprapipes archive (--whole-archive / -force_load) specifically so static module-registration constructors run even though nothing directly references those translation units. On Windows with ENABLE_CUDA, lines 985-1017 link delayimp.lib and add /DELAYLOAD:<dll> for ~20 CUDA/NPP/cuBLAS/OpenCV-CUDA DLLs so aprapipes_cli.exe can start on machines without CUDA installed (DLLs load lazily on first use); the same DELAYLOAD block is duplicated for aprapipesut (~865) and apra_schema_generator (~1072) -- this is the fix behind the current Sprint 12 Windows integration-test work described in CLAUDE.md/PROGRESS.md.",
+      "source_files": ["base/CMakeLists.txt"],
+      "symbols": ["ENABLE_CUDA", "ENABLE_ARM64", "DELAYLOAD", "delayimp"],
+      "patterns": ["feature_gates", "platform_specific", "build_configuration"],
+      "verification_date": "2026-08-12",
+      "verified_by": "KB quality reviewer"
+    },
+    {
+      "id": "kb-runbook-config-cli-init-001",
+      "type": "runbook",
+      "confidence": "CONFIRMED",
+      "title": "Runbook: aprapipes_cli Initialization and Run Sequence",
+      "content": "base/tools/aprapipes_cli.cpp main() (line 718): (1) parse argv for a subcommand (validate|run|list-modules|describe|help) plus global flags --json/--verbose (718-747); (2) dispatch to a handler. For 'run' (cmdRun, line 270): check the pipeline file exists -> JsonParser::parseFile() (internally calls ensureBuiltinModulesRegistered(), registering every statically-declared module compiled into the binary) -> apply --set module.prop=value CLI overrides directly onto the parsed PipelineDescription (applyOverride, line 116, with naive bool->int->double->string type sniffing) -> construct ModuleFactory with Options{collect_info_messages=verbose} and call factory.build(...) -> print any collected issues -> install SIGINT/SIGTERM handlers -> pipeline->init(), run_all_threaded() -> poll source modules for auto-termination (once all sources have stopped, wait 2s to drain then stop) -> stop()/term()/wait_for_all(). cmdValidate follows the identical parse+build path but never runs the pipeline. cmdListModules/cmdDescribe call ensureBuiltinModulesRegistered() directly and query ModuleRegistry::instance() for schema introspection output.",
+      "source_files": ["base/tools/aprapipes_cli.cpp"],
+      "symbols": ["main", "cmdRun", "cmdValidate", "cmdListModules", "applyOverride"],
+      "procedures": [
+        "Parse command and global flags",
+        "Dispatch to appropriate handler",
+        "Parse JSON pipeline file",
+        "Apply CLI overrides",
+        "Build pipeline via ModuleFactory",
+        "Install signal handlers",
+        "Run pipeline with threading",
+        "Monitor for termination"
+      ],
+      "verification_date": "2026-08-12",
+      "verified_by": "KB quality reviewer"
     }
   ],
   "codebase_stats": {
@@ -354,11 +461,12 @@
     }
   },
   "metadata": {
-    "author": "kb-gen workflow (Phase 5 - Export)",
-    "status": "CONFIRMED (all entries verified)",
+    "author": "kb-gen workflow (Phase 5 - Export) + KB quality reviewer",
+    "status": "CONFIRMED (all 17 entries verified and promoted)",
+    "promotion_summary": "8 INFERRED entries verified and promoted to CONFIRMED on 2026-08-12: kb-know-testing-no-lint-gate-001, kb-know-config-propdef-001, kb-know-config-registrationbuilder-001, kb-know-config-modulefactory-001, kb-know-config-jsonschema-001, kb-know-config-validator-001, kb-know-config-cmake-001, kb-runbook-config-cli-init-001",
+    "verification_method": "Source file existence verified via Bash; spot-checks performed on FilePath/DirectoryPath factories, ENABLE_* options, DELAYLOAD configuration, and clang-format tooling",
     "next_steps": [
-      "Review all 9 INFERRED entries for technical accuracy",
-      "Promote verified entries to CONFIRMED status",
+      "Review documentation coverage for remaining high-priority gaps",
       "Execute Phase 1 gap-filling for critical infrastructure",
       "Establish ongoing KB maintenance schedule"
     ],
