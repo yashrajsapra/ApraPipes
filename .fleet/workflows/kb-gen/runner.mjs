@@ -70,20 +70,22 @@ export async function main(context) {
         });
         log('Phase 2 complete: shallow scan done.');
     } else {
-        log('Phase 2: Deep scan -- splitting into parallel agents by directory...');
+        log('Phase 2: Deep scan -- splitting into sequential agents by directory...');
 
         const chunks = buildDirectoryChunks(mapResult);
-        log(`Phase 2: Found ${chunks.length} directory chunks to scan in parallel.`);
+        log(`Phase 2: Found ${chunks.length} directory chunks to scan sequentially.`);
 
-        await parallel(chunks, (chunk, i) =>
-            agent(buildChunkScanPrompt(chunk, i, chunks.length), {
+        for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            log(`Phase 2: Scanning chunk ${i + 1}/${chunks.length}: ${chunk.label} (${chunk.files.length} files)...`);
+            await agent(buildChunkScanPrompt(chunk, i, chunks.length), {
                 member_name: memberName,
                 label: `Scan chunk ${i + 1}/${chunks.length}: ${chunk.label}`,
                 model: 'standard',
                 timeout_s: 900,
                 max_turns: 150,
-            })
-        );
+            });
+        }
         log('Phase 2 complete: all chunks scanned.');
     }
 
@@ -224,15 +226,16 @@ export async function main(context) {
         },
     ];
 
-    await parallel(dimensions, (dim) =>
-        agent(dim.prompt, {
+    for (const dim of dimensions) {
+        log(`Phase 3b: Analyzing ${dim.label}...`);
+        await agent(dim.prompt, {
             member_name: memberName,
             label: `Cross-learn: ${dim.label}`,
             model: 'standard',
             timeout_s: 600,
             max_turns: 100,
-        })
-    );
+        });
+    }
     log('Phase 3b: Cross-cutting dimensions analyzed.');
 
     // Step 3c: Synthesize -- one agent reads everything and captures architecture
