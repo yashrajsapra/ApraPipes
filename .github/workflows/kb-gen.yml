@@ -70,7 +70,33 @@ jobs:
           curl -sf http://localhost:7523/health || (echo "Fleet server failed to start" && exit 1)
 
       - name: Register CI member
-        run: apra-fleet register-member --name ci-scanner --path ${{ github.workspace }} --type local
+        id: register
+        run: |
+          OUTPUT=$(apra-fleet register-member --name ci-scanner --path ${{ github.workspace }} --type local 2>&1)
+          echo "$OUTPUT"
+          # Extract member UUID from the register output
+          MEMBER_ID=$(echo "$OUTPUT" | grep -oP 'ID:\s+\K[a-f0-9-]+')
+          echo "member_id=$MEMBER_ID" >> "$GITHUB_OUTPUT"
+          echo "Extracted member ID: $MEMBER_ID"
+
+      - name: Register fleet MCP endpoint for dispatched agents
+        run: |
+          # The interactive bootstrap is disabled in register-member, so we must
+          # manually register the apra-fleet-member MCP server so dispatched
+          # agent sessions can access kb_capture, kb_query, etc.
+          MEMBER_ID="${{ steps.register.outputs.member_id }}"
+          FLEET_MCP_URL="http://127.0.0.1:7523/mcp?member=${MEMBER_ID}"
+
+          echo "Registering apra-fleet-member MCP at: $FLEET_MCP_URL"
+
+          # Register at project scope so it's available in the workspace
+          claude mcp add \
+            --transport http \
+            --scope project \
+            apra-fleet-member \
+            "$FLEET_MCP_URL"
+
+          echo "MCP endpoint registered for dispatched agents"
 
       - name: Provision LLM auth for CI member
         env:
