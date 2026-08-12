@@ -75,7 +75,7 @@ export async function main(context) {
         const chunks = buildDirectoryChunks(mapResult);
         log(`Phase 2: Found ${chunks.length} directory chunks to scan in parallel.`);
 
-        const scanTasks = chunks.map((chunk, i) => () =>
+        await parallel(chunks, (chunk, i) =>
             agent(buildChunkScanPrompt(chunk, i, chunks.length), {
                 member_name: memberName,
                 label: `Scan chunk ${i + 1}/${chunks.length}: ${chunk.label}`,
@@ -84,8 +84,6 @@ export async function main(context) {
                 max_turns: 150,
             })
         );
-
-        await parallel(scanTasks);
         log('Phase 2 complete: all chunks scanned.');
     }
 
@@ -226,7 +224,7 @@ export async function main(context) {
         },
     ];
 
-    const connectTasks = dimensions.map(dim => () =>
+    await parallel(dimensions, (dim) =>
         agent(dim.prompt, {
             member_name: memberName,
             label: `Cross-learn: ${dim.label}`,
@@ -235,8 +233,6 @@ export async function main(context) {
             max_turns: 100,
         })
     );
-
-    await parallel(connectTasks);
     log('Phase 3b: Cross-cutting dimensions analyzed.');
 
     // Step 3c: Synthesize -- one agent reads everything and captures architecture
