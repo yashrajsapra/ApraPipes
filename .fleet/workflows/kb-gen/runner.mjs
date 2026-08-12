@@ -90,43 +90,198 @@ export async function main(context) {
     }
 
     // ---------------------------------------------------------------
-    // Phase 3: Cross-cutting knowledge
+    // Phase 3: Cross-learning -- chain per-file learnings into
+    // module relationships, data flows, and architectural patterns
     // ---------------------------------------------------------------
     await phase('connect');
-    log('Phase 3: Discovering cross-cutting patterns...');
+    log('Phase 3: Cross-learning -- chaining per-file learnings...');
 
-    await agent(
+    // Step 3a: Build a knowledge map from everything Phase 2 captured
+    const knowledgeMap = await agent(
         [
-            'You are a codebase analyst. You have already scanned individual files.',
-            'Now look for CROSS-CUTTING patterns that span multiple modules.',
+            'You are a codebase analyst. Phase 2 just scanned individual files into the KB.',
+            'Your job: build a KNOWLEDGE MAP that summarizes what was learned.',
             '',
             'Steps:',
-            '1. Run kb_query with broad terms to see what has been captured so far.',
-            '2. Read 3-5 key files that connect different parts of the system',
-            '   (e.g. main entry point, router, dependency injection, config).',
-            '3. For each cross-cutting pattern you find, call kb_capture:',
-            '   - type: "knowledge"',
-            '   - Include which files/modules are involved',
-            '   - Describe the pattern and WHY it exists',
+            '1. Run kb_list to get ALL entries captured so far.',
+            '2. Group entries by directory/module.',
+            '3. For each module, note:',
+            '   - What symbols/classes it exports',
+            '   - What other modules it imports or depends on',
+            '   - What responsibility it owns',
+            '4. Build a dependency map: which modules call/import which other modules?',
+            '   Look at #include, import, require patterns in the entry content.',
             '',
-            'Patterns to look for:',
-            '- Error handling strategy (centralized? per-module?)',
-            '- Configuration flow (env vars? config files? how do they propagate?)',
-            '- Data flow between major components',
-            '- Shared utilities and their consumers',
-            '- Testing patterns and conventions',
-            '- Build/deploy pipeline',
+            'Return your findings as a structured summary:',
+            '- List each module with its key exports and dependencies',
+            '- Note any modules that appear to be "hub" modules (many dependents)',
+            '- Note any modules that seem isolated (no inbound references)',
             '',
-            'Call kb_capture for each pattern. Type should be "knowledge".',
-            'If you find step-by-step procedures, use type "runbook".',
+            'Do NOT call kb_capture yet -- just analyze and return your summary.',
+            'Keep it under 1000 words. Focus on relationships, not individual file details.',
         ].join('\n'),
         {
             member_name: memberName,
-            label: 'Cross-cutting Pattern Discovery',
+            label: 'Build Knowledge Map',
             model: 'standard',
         }
     );
-    log('Phase 3 complete: cross-cutting patterns captured.');
+    log('Phase 3a: Knowledge map built. Launching cross-cutting analyzers...');
+
+    // Step 3b: Parallel agents, each chasing a specific cross-cutting dimension
+    const dimensions = [
+        {
+            label: 'Data Flow & Pipeline',
+            prompt: [
+                'You are analyzing DATA FLOW patterns across this codebase.',
+                '',
+                'Context from the knowledge map:',
+                typeof knowledgeMap === 'string' ? knowledgeMap : JSON.stringify(knowledgeMap),
+                '',
+                'Steps:',
+                '1. Run kb_query for terms like "pipeline", "frame", "data", "buffer",',
+                '   "queue", "stream", "input", "output", "process", "transform".',
+                '2. Read 3-5 key files that are data pipeline hubs (connectors, routers,',
+                '   entry points) based on the knowledge map above.',
+                '3. Trace the data flow: Where does data enter? How is it transformed?',
+                '   Where does it exit? What are the intermediate stages?',
+                '4. For EACH data flow pattern you find, call kb_capture with:',
+                '   - type: "knowledge"',
+                '   - title: "Data Flow: <pattern name>"',
+                '   - content: which modules participate, in what order, what transforms happen',
+                '   - source_files: the files involved',
+                '',
+                'Focus on how data moves BETWEEN modules, not within a single file.',
+            ].join('\n'),
+        },
+        {
+            label: 'Error Handling & Resilience',
+            prompt: [
+                'You are analyzing ERROR HANDLING patterns across this codebase.',
+                '',
+                'Context from the knowledge map:',
+                typeof knowledgeMap === 'string' ? knowledgeMap : JSON.stringify(knowledgeMap),
+                '',
+                'Steps:',
+                '1. Run kb_query for terms like "error", "exception", "throw", "catch",',
+                '   "fail", "retry", "log", "abort", "status".',
+                '2. Read 3-5 files to see how errors are handled -- is there a central',
+                '   error handler? Do modules propagate errors up? Exception types?',
+                '3. For EACH error handling pattern, call kb_capture with:',
+                '   - type: "knowledge"',
+                '   - title: "Error Handling: <pattern name>"',
+                '   - content: the strategy, which modules use it, how errors propagate',
+                '   - source_files: files that implement or exemplify the pattern',
+                '',
+                'Also look for: logging strategy, assertion patterns, graceful degradation.',
+            ].join('\n'),
+        },
+        {
+            label: 'Config & Initialization',
+            prompt: [
+                'You are analyzing CONFIGURATION and INITIALIZATION patterns.',
+                '',
+                'Context from the knowledge map:',
+                typeof knowledgeMap === 'string' ? knowledgeMap : JSON.stringify(knowledgeMap),
+                '',
+                'Steps:',
+                '1. Run kb_query for terms like "config", "init", "setup", "props",',
+                '   "env", "options", "settings", "parameters", "cmake", "build".',
+                '2. Read the build system files (CMakeLists.txt, package.json, etc.).',
+                '3. Trace: How is the system configured? What gets initialized first?',
+                '   How do config values flow from the top level into modules?',
+                '4. For EACH pattern, call kb_capture with:',
+                '   - type: "knowledge"',
+                '   - title: "Config: <pattern name>"',
+                '   - content: what is configured, how values propagate, defaults',
+                '   - source_files: files involved',
+                '',
+                'Also capture any build/deploy procedures as type "runbook".',
+            ].join('\n'),
+        },
+        {
+            label: 'Testing & Quality Patterns',
+            prompt: [
+                'You are analyzing TESTING patterns and conventions.',
+                '',
+                'Context from the knowledge map:',
+                typeof knowledgeMap === 'string' ? knowledgeMap : JSON.stringify(knowledgeMap),
+                '',
+                'Steps:',
+                '1. Run kb_query for terms like "test", "boost", "assert", "fixture",',
+                '   "mock", "expect", "verify", "benchmark".',
+                '2. Read 3-5 test files to understand:',
+                '   - What framework is used (Boost.Test, gtest, pytest, jest, etc.)?',
+                '   - What naming conventions do tests follow?',
+                '   - How are test fixtures set up?',
+                '   - What is the test-to-source file mapping convention?',
+                '3. For EACH testing pattern, call kb_capture with:',
+                '   - type: "knowledge"',
+                '   - title: "Testing: <pattern name>"',
+                '   - content: framework, conventions, setup patterns',
+                '   - source_files: example test files',
+                '',
+                'Also capture: CI pipeline patterns, linting, code quality tooling.',
+            ].join('\n'),
+        },
+    ];
+
+    const connectTasks = dimensions.map(dim => () =>
+        agent(dim.prompt, {
+            member_name: memberName,
+            label: `Cross-learn: ${dim.label}`,
+            model: 'standard',
+            timeout_s: 600,
+            max_turns: 100,
+        })
+    );
+
+    await parallel(connectTasks);
+    log('Phase 3b: Cross-cutting dimensions analyzed.');
+
+    // Step 3c: Synthesize -- one agent reads everything and captures architecture
+    await agent(
+        [
+            'You are the final synthesis agent. All individual files AND cross-cutting',
+            'patterns have been captured into the KB.',
+            '',
+            'Your job: produce the ARCHITECTURAL OVERVIEW -- the "30,000-foot view".',
+            '',
+            'Steps:',
+            '1. Run kb_query for "Data Flow", "Error Handling", "Config", "Testing"',
+            '   to read the cross-cutting patterns that were just captured.',
+            '2. Run kb_list to see all entries.',
+            '3. Synthesize into high-level knowledge entries:',
+            '',
+            '   a. Call kb_capture with type "knowledge", title "Architecture Overview":',
+            '      - What this system IS (one paragraph)',
+            '      - The major subsystems/layers and how they connect',
+            '      - The key design decisions (why is it built this way?)',
+            '',
+            '   b. Call kb_capture with type "knowledge", title "Module Dependency Map":',
+            '      - Which modules depend on which',
+            '      - What the dependency direction is (does data flow left-to-right?',
+            '        top-to-bottom? hub-and-spoke?)',
+            '',
+            '   c. Call kb_capture with type "knowledge", title "Developer Guide":',
+            '      - How a new developer would navigate this codebase',
+            '      - Where to start reading',
+            '      - Common pitfalls or non-obvious conventions',
+            '',
+            '   d. If you notice any CONTRADICTIONS between entries (e.g. one entry says',
+            '      "errors are logged" but another shows they are thrown), call kb_capture',
+            '      with type "knowledge" to document the inconsistency.',
+            '',
+            'Each kb_capture call should reference the source entries/files it draws from.',
+        ].join('\n'),
+        {
+            member_name: memberName,
+            label: 'Architecture Synthesis',
+            model: 'standard',
+        }
+    );
+    log('Phase 3c: Architecture synthesized.');
+    log('Phase 3 complete: cross-learning chain finished.');
 
     // ---------------------------------------------------------------
     // Phase 4: Auto-promote INFERRED entries to CONFIRMED
