@@ -10,8 +10,19 @@
  */
 
 export async function main(context) {
-    const { agent, log, phase, args, parallel } = context;
+    const { agent: rawAgent, log, phase, args, parallel } = context;
     const { memberName, depth, autoPromote } = args;
+
+    // Wrap agent() to log return value summary for observability
+    async function agent(prompt, opts) {
+        const result = await rawAgent(prompt, opts);
+        const label = opts && opts.label ? opts.label : 'unnamed';
+        const text = typeof result === 'string' ? result : JSON.stringify(result);
+        const len = text ? text.length : 0;
+        const preview = text ? text.substring(0, 200).replace(/\n/g, ' ') : '(empty)';
+        log(`[Agent Result] ${label}: ${len} chars -- ${preview}${len > 200 ? '...' : ''}`);
+        return result;
+    }
 
     // ---------------------------------------------------------------
     // Phase 1: Setup + map the repo + discover file groups
