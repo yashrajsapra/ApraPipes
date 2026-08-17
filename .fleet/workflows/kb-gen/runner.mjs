@@ -9,13 +9,37 @@
  *   5. export  -- kb_export + kb_stats report
  */
 
+// Tool discovery preamble -- prepended to EVERY agent prompt so the agent
+// knows how to find and load the KB tools from the MCP server.
+const TOOL_PREAMBLE = [
+    'CRITICAL SETUP -- DO THIS FIRST BEFORE ANYTHING ELSE:',
+    'The KB tools (kb_capture, kb_query, kb_list, kb_promote, kb_export, etc.)',
+    'are available via the apra-fleet-member MCP server, but they are DEFERRED',
+    'tools -- you must load them before you can call them.',
+    '',
+    'Run these ToolSearch calls at the START of your session:',
+    '  ToolSearch({ query: "select:mcp__apra-fleet-member__kb_capture,mcp__apra-fleet-member__kb_query,mcp__apra-fleet-member__kb_list,mcp__apra-fleet-member__kb_setup,mcp__apra-fleet-member__kb_session_prime" })',
+    '  ToolSearch({ query: "select:mcp__apra-fleet-member__kb_promote,mcp__apra-fleet-member__kb_export,mcp__apra-fleet-member__kb_stats,mcp__apra-fleet-member__kb_feedback,mcp__apra-fleet-member__kb_context" })',
+    '',
+    'After loading, call them with their FULL MCP name, e.g.:',
+    '  mcp__apra-fleet-member__kb_capture({ ... })',
+    '  mcp__apra-fleet-member__kb_list({ ... })',
+    '',
+    'If ToolSearch returns no matches, try: ToolSearch({ query: "+apra-fleet-member kb" })',
+    'Do NOT skip this step. Do NOT proceed without loading the tools first.',
+    '',
+    '---',
+    '',
+].join('\n');
+
 export async function main(context) {
     const { agent: rawAgent, log, phase, args, parallel } = context;
     const { memberName, depth, autoPromote } = args;
 
-    // Wrap agent() to log return value summary for observability
+    // Wrap agent() to prepend tool discovery preamble and log return value
     async function agent(prompt, opts) {
-        const result = await rawAgent(prompt, opts);
+        const fullPrompt = TOOL_PREAMBLE + prompt;
+        const result = await rawAgent(fullPrompt, opts);
         const label = opts && opts.label ? opts.label : 'unnamed';
         const text = typeof result === 'string' ? result : JSON.stringify(result);
         const len = text ? text.length : 0;
